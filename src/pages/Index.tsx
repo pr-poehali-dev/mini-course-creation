@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 
 // Пастельная палитра
@@ -114,6 +115,7 @@ function StatCard({ value, suffix, label, color }: { value: number; suffix: stri
 export default function Index() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const navigate = useNavigate();
 
   const tickerItems = [...TICKER_ITEMS, ...TICKER_ITEMS];
 
@@ -149,7 +151,8 @@ export default function Index() {
           <a href="#start" className="transition-colors hover:opacity-80">Цены</a>
         </div>
         <button
-          className="hidden md:block px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 hover:opacity-90"
+          onClick={() => navigate("/login")}
+          className="hidden md:block px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 hover:opacity-90 hover:scale-[1.03] active:scale-95"
           style={{
             border: `1.5px solid ${C.pink}`,
             color: C.pink,
