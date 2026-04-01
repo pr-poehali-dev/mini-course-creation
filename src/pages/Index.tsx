@@ -115,7 +115,28 @@ function StatCard({ value, suffix, label, color }: { value: number; suffix: stri
 export default function Index() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
   const navigate = useNavigate();
+
+  const validateEmail = (val: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+
+  const handleSubscribe = async () => {
+    setEmailError("");
+    if (!email.trim()) {
+      setEmailError("Введите email");
+      return;
+    }
+    if (!validateEmail(email)) {
+      setEmailError("Некорректный email");
+      return;
+    }
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 1000));
+    setLoading(false);
+    setSubmitted(true);
+  };
 
   const tickerItems = [...TICKER_ITEMS, ...TICKER_ITEMS];
 
@@ -428,7 +449,7 @@ export default function Index() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* CTA / SUBSCRIBE */}
       <section id="start" className="relative z-10 px-6 md:px-12 py-32 max-w-4xl mx-auto text-center">
         <h2
           className="font-display text-[clamp(2.5rem,6vw,5.5rem)] font-light leading-tight mb-6"
@@ -441,33 +462,126 @@ export default function Index() {
           Первый сайт — бесплатно. Без регистрации карты.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3 max-w-md mx-auto">
-          <input
-            type="email"
-            placeholder="ваш@email.ru"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="flex-1 w-full sm:w-auto px-5 py-3.5 rounded-full text-sm outline-none transition-colors"
-            style={{
-              background: C.bgCard,
-              color: C.text,
-              border: `1.5px solid ${C.border}`,
-            }}
-            onFocus={(e) => e.target.style.borderColor = C.pink}
-            onBlur={(e) => e.target.style.borderColor = C.border}
-          />
-          <button
-            onClick={() => setSubmitted(true)}
-            className="w-full sm:w-auto px-7 py-3.5 rounded-full font-semibold text-sm transition-all duration-200 hover:scale-105 active:scale-95 shrink-0 text-white"
-            style={{
-              background: C.pink,
-              boxShadow: `0 4px 20px ${C.pinkBorder}`,
-            }}
-          >
-            {submitted ? "✓ Записались!" : "Попробовать"}
-          </button>
+        {/* Subscribe card */}
+        <div
+          className="max-w-md mx-auto rounded-3xl p-8 text-left"
+          style={{
+            background: C.bgCard,
+            border: `1px solid ${C.border}`,
+            boxShadow: `0 8px 40px ${C.pinkBorder}40`,
+          }}
+        >
+          {submitted ? (
+            /* Success state */
+            <div className="flex flex-col items-center gap-4 py-4 animate-fade-in" style={{ animationFillMode: "forwards" }}>
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center"
+                style={{ background: C.greenLight }}
+              >
+                <Icon name="CheckCircle2" size={32} style={{ color: C.green }} />
+              </div>
+              <div className="text-center">
+                <p className="font-display text-2xl font-light mb-1" style={{ color: C.text }}>
+                  Вы в списке!
+                </p>
+                <p className="text-sm" style={{ color: C.textMuted }}>
+                  Отправили подтверждение на{" "}
+                  <span className="font-medium" style={{ color: C.text }}>{email}</span>
+                </p>
+              </div>
+              <div
+                className="w-full px-4 py-3 rounded-2xl text-xs text-center"
+                style={{ background: C.greenLight, color: C.textMuted, border: `1px solid ${C.greenBorder}` }}
+              >
+                🎉 Уже <strong>2 400+</strong> разработчиков присоединились
+              </div>
+            </div>
+          ) : (
+            /* Form state */
+            <>
+              <div className="mb-6">
+                <p className="font-semibold text-base mb-1" style={{ color: C.text }}>
+                  Подписаться на обновления
+                </p>
+                <p className="text-sm" style={{ color: C.textMuted }}>
+                  Узнайте первыми о новых функциях и ранний доступ.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <div className="relative">
+                    <Icon
+                      name="Mail"
+                      size={16}
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                      style={{ color: emailError ? C.pink : C.textLight }}
+                    />
+                    <input
+                      type="email"
+                      placeholder="ваш@email.ru"
+                      value={email}
+                      onChange={(e) => { setEmail(e.target.value); setEmailError(""); }}
+                      onKeyDown={(e) => e.key === "Enter" && handleSubscribe()}
+                      disabled={loading}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none transition-all duration-200 focus:ring-2 disabled:opacity-60"
+                      style={{
+                        background: C.bg,
+                        border: `1.5px solid ${emailError ? C.pink : C.border}`,
+                        color: C.text,
+                      }}
+                      onFocus={(e) => { if (!emailError) e.target.style.borderColor = C.pink; }}
+                      onBlur={(e) => { if (!emailError) e.target.style.borderColor = C.border; }}
+                    />
+                  </div>
+                  {emailError && (
+                    <div className="flex items-center gap-1.5 text-xs animate-fade-in" style={{ color: C.pink, animationFillMode: "forwards" }}>
+                      <Icon name="AlertCircle" size={12} />
+                      {emailError}
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleSubscribe}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed text-white"
+                  style={{
+                    background: C.pink,
+                    boxShadow: `0 4px 20px ${C.pinkBorder}`,
+                  }}
+                >
+                  {loading ? (
+                    <>
+                      <Icon name="Loader2" size={16} className="animate-spin" />
+                      Подписываем...
+                    </>
+                  ) : (
+                    <>
+                      Попробовать бесплатно
+                      <Icon name="ArrowRight" size={16} />
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="mt-4 flex items-center gap-4">
+                {[
+                  { icon: "Shield" as const, text: "Без спама" },
+                  { icon: "CreditCard" as const, text: "Без карты" },
+                  { icon: "X" as const, text: "Отписка в 1 клик" },
+                ].map(({ icon, text }) => (
+                  <div key={text} className="flex items-center gap-1 text-xs" style={{ color: C.textLight }}>
+                    <Icon name={icon} size={12} />
+                    {text}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
-        <p className="mt-4 text-xs" style={{ color: C.textLight }}>
+
+        <p className="mt-6 text-xs" style={{ color: C.textLight }}>
           Уже 2 400+ проектов запущено. Присоединяйтесь.
         </p>
       </section>
